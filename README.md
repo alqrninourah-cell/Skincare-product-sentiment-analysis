@@ -59,3 +59,23 @@ Code packaged for public review; a full end-to-end test with all roles and depen
 ## Contributors
 
 Nourah Alqarni · Manal Alzahrani · Reema Alamri — King Khalid University
+
+
+## Application Screenshots
+
+### Home Page
+Users can enter their skin type and skincare concerns to request recommendations.
+
+![Skincare home page](screenshots/home-page.png)
+
+### Personalized Product Recommendations
+Example product matches displayed for a selected skin type.
+
+![Recommended skincare products](screenshots/recommendations.png)
+
+### Trend Analysis Dashboard
+The brand-facing interface presents category trends, positive-review rates, and customer concerns.
+
+![Trend analysis dashboard](screenshots/trend-analysis.png)
+
+*Screenshots captured from the academic project demonstration. Displayed figures are illustrative and should not be interpreted as independently verified production metrics.*

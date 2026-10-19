@@ -66,16 +66,16 @@ Nourah Alqarni · Manal Alzahrani · Reema Alamri — King Khalid University
 ### Home Page
 Users can enter their skin type and skincare concerns to request recommendations.
 
-![Skincare home page](home-page.png)
+![Skincare home page](screenshots/home-page.png)
 
 ### Personalized Product Recommendations
 Example product matches displayed for a selected skin type.
 
-![Recommended skincare products](recommendations.png)
+![Recommended skincare products](screenshots/recommendations.png)
 
 ### Trend Analysis Dashboard
 The brand-facing interface presents category trends, positive-review rates, and customer concerns.
 
-![Trend analysis dashboard](trend-analysis.png)
+![Trend analysis dashboard](screenshots/trend-analysis.png)
 
 *Screenshots captured from the academic project demonstration. Displayed figures are illustrative and should not be interpreted as independently verified production metrics.*

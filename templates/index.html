@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skincare Sentiment Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <div>
+                        <a href="/" class="flex items-center py-4 px-2">
+                            <span class="font-semibold text-gray-500 text-lg">Skincare AI</span>
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="/" class="py-4 px-2 text-green-500 border-b-4 border-green-500 font-semibold">Home</a>
+                        <a href="/about" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">About</a>
+                        <a href="/contact" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Contact</a>
+                        <a href="/history" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">History</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if current_user.is_authenticated %}
+                        <span class="text-gray-500">Welcome, {{ current_user.email }}!</span>
+                        {% if current_user.is_admin() %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="py-2 px-4 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition duration-300">Admin Portal</a>
+                        {% endif %}
+                        <a href="{{ url_for('auth.logout') }}" class="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300">Register</a>
+                        <a href="{{ url_for('auth.brand_register') }}" class="py-2 px-4 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition duration-300">Brand Portal</a>
+                        <a href="{{ url_for('auth.influencer_register') }}" class="py-2 px-4 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition duration-300">Influencer Portal</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-green-400 via-blue-500 to-blue-600 text-white overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 py-24">
+            <div class="text-center">
+                <h1 class="text-6xl font-bold mb-6 bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                    Discover Your Perfect Skincare
+                </h1>
+                <p class="text-xl mb-8 max-w-3xl mx-auto leading-relaxed opacity-90">
+                    Transform your skincare routine with AI-powered recommendations based on thousands of real user reviews and advanced sentiment analysis.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.is_admin() %}
+                            <a href="{{ url_for('admin.dashboard') }}" class="bg-white text-purple-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-2">
+                                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                                Go to Admin Dashboard
+                            </a>
+                        {% elif current_user.is_brand() %}
+                            <a href="{{ url_for('brand.dashboard') }}" class="bg-white text-yellow-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-2">
+                                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                                Go to Brand Dashboard
+                            </a>
+                        {% elif current_user.is_influencer() %}
+                            <a href="{{ url_for('influencer.dashboard') }}" class="bg-white text-purple-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-2">
+                                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                                Go to Influencer Dashboard
+                            </a>
+                        {% else %}
+                            <a href="#recommendationForm" class="bg-white text-green-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-2">
+                                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                                Get Recommendations
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="#recommendationForm" class="bg-white text-green-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            Get Started Now
+                        </a>
+                    {% endif %}
+                    <a href="/about" class="border-2 border-white text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-green-600 transition-all duration-300">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Decorative Elements -->
+        <div class="absolute top-20 left-10 w-20 h-20 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute bottom-20 right-10 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute top-1/2 left-1/4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div class="p-6">
+                    <div class="text-4xl font-bold text-green-600 mb-2">110K+</div>
+                    <div class="text-gray-600">Reviews Analyzed</div>
+                </div>
+                <div class="p-6">
+                    <div class="text-4xl font-bold text-blue-600 mb-2">Dual-Engine</div>
+                    <div class="text-gray-600">AI Analysis</div>
+                </div>
+                <div class="p-6">
+                    <div class="text-4xl font-bold text-purple-600 mb-2">200</div>
+                    <div class="text-gray-600">Products</div>
+                </div>
+                <div class="p-6">
+                    <div class="text-4xl font-bold text-pink-600 mb-2">24/7</div>
+                    <div class="text-gray-600">AI Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- How It Works Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">How It Works</h2>
+                <p class="text-xl text-gray-600">Get personalized skincare recommendations in just 3 simple steps</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
+                        1
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Tell Us About Yourself</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Share your skin type and specific concerns. Our AI learns about your unique skincare needs and preferences.
+                    </p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
+                        2
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">AI Analysis</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Our advanced algorithms analyze thousands of authentic reviews to find products that match your profile perfectly.
+                    </p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
+                        3
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Get Recommendations</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Receive personalized product suggestions with detailed insights and user sentiment analysis for confident purchasing decisions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recommendation Form Section -->
+    <section class="py-20 bg-gradient-to-r from-gray-50 to-gray-100" id="recommendationForm">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-4">Find Your Perfect Skincare Match</h2>
+                    <p class="text-xl text-gray-600">Let our AI analyze thousands of reviews to recommend the best products for your skin</p>
+                </div>
+
+                <form action="/recommend" method="POST" class="max-w-lg mx-auto" id="recommendationForm">
+                    <div class="mb-6">
+                        <label for="skin_type" class="block text-gray-700 font-semibold mb-3 text-lg">What's Your Skin Type?</label>
+                        <div class="relative">
+                            <select name="skin_type" id="skin_type" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-900 text-lg transition-all duration-300" required>
+                                <option value="">Select your skin type</option>
+                                <option value="normal">Normal Skin</option>
+                                <option value="combination">Combination Skin</option>
+                                <option value="dry">Dry Skin</option>
+                                <option value="oily">Oily Skin</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <label for="concerns" class="block text-gray-700 font-semibold mb-3 text-lg">What Are Your Main Concerns?</label>
+                        <div class="relative">
+                            <textarea name="concerns" id="concerns" rows="4" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-900 text-lg resize-none transition-all duration-300" placeholder="e.g., acne, dryness, wrinkles, dark spots, fine lines..."></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center text-lg font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <i data-lucide="sparkles" class="w-5 h-5 mr-2"></i>
+                        <span id="btnText">Get My Personalized Recommendations</span>
+                        <div id="loadingSpinner" class="hidden ml-3">
+                            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        </div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    
+
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2024 Skincare Sentiment Analysis. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

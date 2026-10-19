@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trending Products - Influencer Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <div>
+                        <a href="/" class="flex items-center py-4 px-2">
+                            <span class="font-semibold text-gray-500 text-lg">Skincare AI</span>
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="{{ url_for('influencer.dashboard') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Dashboard</a>
+                        <a href="{{ url_for('influencer.trending') }}"
+                            class="py-4 px-2 text-green-500 border-b-4 border-green-500 font-semibold">Trending</a>
+                        <a href="{{ url_for('influencer.recommended') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Recommended</a>
+                        <a href="{{ url_for('influencer.filter_products') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Filter</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if current_user.is_authenticated %}
+                    <span class="text-gray-500">Welcome, {{ current_user.email }}!</span>
+                    <a href="{{ url_for('auth.logout') }}"
+                        class="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300">Logout</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-green-400 via-blue-500 to-blue-600 text-white overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 py-16">
+            <div class="text-center">
+                <h1 class="text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                    Trending Products
+                </h1>
+                <p class="text-lg mb-4 leading-relaxed opacity-90 max-w-2xl mx-auto">
+                    Discover the hottest skincare products based on recent consumer sentiment and review activity.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <form method="GET" action="{{ url_for('influencer.trending') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Time Period</label>
+                    <select name="time_period" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg">
+                        <option value="day" {% if time_period == 'day' %}selected{% endif %}>Last 24 Hours</option>
+                        <option value="week" {% if time_period == 'week' %}selected{% endif %}>Last Week</option>
+                        <option value="month" {% if time_period == 'month' %}selected{% endif %}>Last Month</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Skin Type</label>
+                    <select name="skin_type" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg">
+                        <option value="">All Skin Types</option>
+                        <option value="normal" {% if skin_type == 'normal' %}selected{% endif %}>Normal</option>
+                        <option value="dry" {% if skin_type == 'dry' %}selected{% endif %}>Dry</option>
+                        <option value="oily" {% if skin_type == 'oily' %}selected{% endif %}>Oily</option>
+                        <option value="combination" {% if skin_type == 'combination' %}selected{% endif %}>Combination</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Limit</label>
+                    <input type="number" name="limit" value="{{ limit }}" min="5" max="50" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2 px-4 rounded-lg hover:from-green-600 hover:to-green-700">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Products Grid -->
+        {% if trending_products %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for product in trending_products %}
+            <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition duration-300">
+                <div class="font-semibold text-gray-800 text-lg mb-2">{{ product.name }}</div>
+                <div class="text-sm text-gray-600 mb-4">{{ product.brand_name }} • {{ product.category }}</div>
+                
+                <div class="space-y-2 mb-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Trend Score:</span>
+                        <span class="font-bold text-blue-600">{{ product.trend_score }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Positive Sentiment:</span>
+                        <span class="font-bold text-green-600">{{ product.positive_percentage }}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Rating:</span>
+                        <span class="font-bold">{{ product.rating }}/5</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Recent Reviews:</span>
+                        <span class="font-bold">{{ product.recent_review_count }}</span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2">
+                    <a href="{{ url_for('influencer.product_insights', product_id=product.product_id, source='trending') }}"
+                        class="flex-1 text-center bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition duration-300">
+                        View Insights
+                    </a>
+                    <button onclick="copyProductLink({{ product.product_id }}, 'trending', this, true)" 
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg transition duration-300 flex items-center justify-center" 
+                        title="Copy public link">
+                        <i data-lucide="link" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <p class="text-gray-600 text-lg">No trending products found with the selected filters.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-0 opacity-0 transition-all duration-300 z-50">
+        <div class="flex items-center gap-2">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span>Link copied to clipboard!</span>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        function copyProductLink(productId, source, button, usePublic = false) {
+            const toast = document.getElementById('toast');
+            const baseUrl = window.location.origin;
+            // Use public route for sharing so anyone can access it
+            const url = usePublic 
+                ? `${baseUrl}/products/${productId}/insights?source=${source}`
+                : `${baseUrl}/influencer/products/${productId}/insights?source=${source}`;
+            
+            navigator.clipboard.writeText(url).then(() => {
+                // Visual feedback on button
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+                button.classList.add('bg-green-500', 'text-white');
+                lucide.createIcons();
+                
+                // Show toast
+                toast.classList.remove('opacity-0', 'translate-y-0');
+                toast.classList.add('opacity-100', '-translate-y-2');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('bg-green-500', 'text-white');
+                    lucide.createIcons();
+                    toast.classList.remove('opacity-100', '-translate-y-2');
+                    toast.classList.add('opacity-0', 'translate-y-0');
+                }, 2000);
+            }).catch(err => {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                toast.classList.remove('opacity-0', 'translate-y-0');
+                toast.classList.add('opacity-100', '-translate-y-2');
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100', '-translate-y-2');
+                    toast.classList.add('opacity-0', 'translate-y-0');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
+

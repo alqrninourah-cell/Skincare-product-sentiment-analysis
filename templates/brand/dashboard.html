@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Dashboard - {{ brand_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <div>
+                        <a href="/" class="flex items-center py-4 px-2">
+                            <span class="font-semibold text-gray-500 text-lg">Skincare AI</span>
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="{{ url_for('brand.dashboard') }}"
+                            class="py-4 px-2 text-green-500 border-b-4 border-green-500 font-semibold">Dashboard</a>
+                        <a href="{{ url_for('brand.products') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Products</a>
+                        <a href="{{ url_for('brand.trends') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Trends</a>
+                        <a href="{{ url_for('brand.export') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Export</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if current_user.is_authenticated %}
+                    <span class="text-gray-500">Welcome, {{ current_user.email }}!</span>
+                    {% if current_user.is_admin() %}
+                    <a href="{{ url_for('admin.dashboard') }}"
+                        class="py-2 px-4 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition duration-300">Admin
+                        Portal</a>
+                    {% endif %}
+                    <a href="{{ url_for('auth.logout') }}"
+                        class="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300">Logout</a>
+                    {% else %}
+                    <a href="{{ url_for('auth.brand_login') }}"
+                        class="py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300">Brand Login</a>
+                    <a href="{{ url_for('auth.brand_register') }}"
+                        class="py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300">Brand Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-green-400 via-blue-500 to-blue-600 text-white overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 py-20">
+            <div class="text-center">
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                    Brand Analytics Dashboard
+                </h1>
+                <p class="text-xl mb-8 leading-relaxed opacity-90 max-w-3xl mx-auto">
+                    Track your product performance, monitor customer sentiment, and gain valuable insights from real user reviews.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2">
+                        <i data-lucide="bar-chart" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold">Real-Time Analytics</span>
+                    </div>
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold">Sentiment Tracking</span>
+                    </div>
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold">Customer Insights</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decorative Elements -->
+        <div class="absolute top-20 left-10 w-20 h-20 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute bottom-20 right-10 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute top-1/2 left-1/4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute top-1/3 right-1/4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+    </section>
+
+    <!-- Dashboard Content -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        {% if sentiment_metrics %}
+        <!-- Sentiment Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-600 text-sm mb-2">Total Reviews</div>
+                <div class="text-3xl font-bold text-gray-800">{{ sentiment_metrics.total_reviews | default(0) | int }}
+                </div>
+            </div>
+            <div class="bg-green-50 rounded-lg shadow-md p-6">
+                <div class="text-green-600 text-sm mb-2">Positive</div>
+                <div class="text-3xl font-bold text-green-600">{{ sentiment_metrics.positive_pct | default(0) }}%</div>
+                <div class="text-sm text-gray-600 mt-1">{{ sentiment_metrics.positive_count | default(0) | int }}
+                    reviews</div>
+            </div>
+            <div class="bg-red-50 rounded-lg shadow-md p-6">
+                <div class="text-red-600 text-sm mb-2">Negative</div>
+                <div class="text-3xl font-bold text-red-600">{{ sentiment_metrics.negative_pct | default(0) }}%</div>
+                <div class="text-sm text-gray-600 mt-1">{{ sentiment_metrics.negative_count | default(0) | int }}
+                    reviews</div>
+            </div>
+            <div class="bg-blue-50 rounded-lg shadow-md p-6">
+                <div class="text-blue-600 text-sm mb-2">Average Rating</div>
+                <div class="text-3xl font-bold text-blue-600">{{ sentiment_metrics.average_rating | default(0) }}</div>
+                <div class="text-sm text-gray-600 mt-1">out of 5.0</div>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-white rounded-lg shadow-md p-8 text-center mb-8">
+            <p class="text-gray-600 text-lg">This dashboard is no longer available. Please use the Admin Portal for
+                analytics.</p>
+            <a href="{{ url_for('admin.dashboard') }}"
+                class="inline-block mt-4 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-semibold">
+                Go to Admin Portal
+            </a>
+        </div>
+        {% endif %}
+
+        {% if sentiment_metrics and sentiment_trends %}
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Sentiment Distribution Pie Chart -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Sentiment Distribution</h2>
+                <canvas id="sentimentChart" width="400" height="400"></canvas>
+            </div>
+
+            <!-- Sentiment Trends Line Chart -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Sentiment Trends (Monthly)</h2>
+                <canvas id="trendsChart" width="400" height="400"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Products and Concerns Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Top Products -->
+            {% if top_products %}
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Top Performing Products</h2>
+                <div class="space-y-4">
+                    {% for product in top_products %}
+                    <div class="border-l-4 border-green-500 pl-4">
+                        <div class="font-semibold text-gray-800">{{ product.product_name }}</div>
+                        <div class="text-sm text-gray-600">{{ product.category }}</div>
+                        <div class="flex items-center mt-2">
+                            <span class="text-green-600 font-semibold">{{ product.positive_pct }}%</span>
+                            <span class="text-gray-500 text-sm ml-2">positive ({{ product.total_reviews }}
+                                reviews)</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Common Concerns -->
+            {% if common_concerns %}
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Common Customer Concerns</h2>
+                <div class="space-y-3">
+                    {% for concern in common_concerns %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-800">{{ concern.concern }}</span>
+                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            {{ concern.frequency }} mentions
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Negative Issues -->
+        {% if negative_issues %}
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Negative Feedback</h2>
+            <div class="space-y-4">
+                {% for issue in negative_issues %}
+                <div class="border-l-4 border-red-500 pl-4 py-2">
+                    <div class="font-semibold text-gray-800">{{ issue.product_name }}</div>
+                    <div class="text-sm text-gray-600 mt-1">{{ issue.review_text }}</div>
+                    <div class="text-xs text-gray-500 mt-2">Rating: {{ issue.rating }}/5</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+
+    {% if sentiment_metrics and sentiment_trends %}
+    <script>
+        // Sentiment Distribution Pie Chart
+        (function() {
+            const sentimentCtx = document.getElementById('sentimentChart');
+            if (!sentimentCtx) return;
+            
+            var positiveCount = {% if sentiment_metrics %}{{ sentiment_metrics.positive_count | default(0) | int }}{% else %}0{% endif %};
+            var negativeCount = {% if sentiment_metrics %}{{ sentiment_metrics.negative_count | default(0) | int }}{% else %}0{% endif %};
+            var neutralCount = {% if sentiment_metrics %}{{ sentiment_metrics.neutral_count | default(0) | int }}{% else %}0{% endif %};
+            
+            new Chart(sentimentCtx.getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Positive', 'Negative', 'Neutral'],
+                    datasets: [{
+                        data: [positiveCount, negativeCount, neutralCount],
+                        backgroundColor: ['#10b981', '#ef4444', '#6b7280']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+        })();
+
+        // Sentiment Trends Line Chart
+        (function() {
+            const trendsCtx = document.getElementById('trendsChart');
+            if (!trendsCtx) return;
+            
+            {% if sentiment_trends and sentiment_trends.trends %}
+            var trendsData = {{ sentiment_trends.trends | tojson }};
+            {% else %}
+            var trendsData = [];
+            {% endif %}
+            
+            if (trendsData && Array.isArray(trendsData) && trendsData.length > 0) {
+                new Chart(trendsCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: trendsData.map(function (t) { return t.period; }),
+                        datasets: [
+                            {
+                                label: 'Positive',
+                                data: trendsData.map(function (t) { return t.positive; }),
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                            },
+                            {
+                                label: 'Negative',
+                                data: trendsData.map(function (t) { return t.negative; }),
+                                borderColor: '#ef4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                            },
+                            {
+                                label: 'Neutral',
+                                data: trendsData.map(function (t) { return t.neutral; }),
+                                borderColor: '#6b7280',
+                                backgroundColor: 'rgba(107, 114, 128, 0.1)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2024 Skincare Sentiment Analysis. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

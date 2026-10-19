@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Skincare AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <div>
+                        <a href="/" class="flex items-center py-4 px-2">
+                            <span class="font-semibold text-gray-500 text-lg">Skincare AI - Admin</span>
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="{{ url_for('admin.dashboard') }}" class="py-4 px-2 text-green-500 border-b-4 border-green-500 font-semibold">Dashboard</a>
+                        <a href="{{ url_for('admin.users') }}" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Users</a>
+                        <a href="{{ url_for('admin.products') }}" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Products</a>
+                        <a href="{{ url_for('admin.reviews') }}" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Reviews</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500">{% if current_user.is_admin() %}Admin{% elif current_user.is_brand() %}Brand{% else %}User{% endif %}: {{ current_user.email }}</span>
+                    <a href="{{ url_for('main.index') }}" class="py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300">Main Site</a>
+                    <a href="{{ url_for('auth.logout') }}" class="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-gray-600 text-sm mb-2">Total Users</div>
+                        <div class="text-3xl font-bold text-gray-800">{{ total_users }}</div>
+                        <div class="text-sm text-green-600 mt-1">+{{ recent_users }} this week</div>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i data-lucide="users" class="w-8 h-8 text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-gray-600 text-sm mb-2">Total Products</div>
+                        <div class="text-3xl font-bold text-gray-800">{{ total_products }}</div>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i data-lucide="package" class="w-8 h-8 text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-gray-600 text-sm mb-2">Total Reviews</div>
+                        <div class="text-3xl font-bold text-gray-800">{{ total_reviews }}</div>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i data-lucide="message-square" class="w-8 h-8 text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-gray-600 text-sm mb-2">Positive Reviews</div>
+                        <div class="text-3xl font-bold text-green-600">{{ positive_reviews }}</div>
+                        <div class="text-sm text-gray-600 mt-1">{{ "%.1f"|format((positive_reviews / total_reviews * 100) if total_reviews > 0 else 0) }}%</div>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i data-lucide="thumbs-up" class="w-8 h-8 text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Roles Distribution -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">User Roles</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Admins</span>
+                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">{{ admin_count }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Brands</span>
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">{{ brand_count }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Users</span>
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{{ user_count }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Sentiment Distribution</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Positive</span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">{{ positive_reviews }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Negative</span>
+                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">{{ negative_reviews }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Neutral</span>
+                        <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">{{ neutral_reviews }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Quick Actions</h3>
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin.users') }}" class="block w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2 px-4 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 text-center font-semibold">
+                        Manage Users
+                    </a>
+                    <a href="{{ url_for('admin.products') }}" class="block w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-center font-semibold">
+                        Manage Products
+                    </a>
+                    <a href="{{ url_for('admin.reviews') }}" class="block w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 text-center font-semibold">
+                        Moderate Reviews
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Reviews</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rating</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sentiment</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for review in recent_reviews %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ review.product.name if review.product else 'N/A' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span class="text-yellow-500">★</span> {{ review.rating }}/5
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full {% if review.sentiment == 'positive' %}bg-green-100 text-green-800{% elif review.sentiment == 'negative' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ review.sentiment }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ review.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Top Products -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Top Products by Reviews</h2>
+            <div class="space-y-4">
+                {% for product, review_count in top_products %}
+                <div class="flex items-center justify-between border-b pb-3">
+                    <div>
+                        <div class="font-semibold text-gray-800">{{ product.name }}</div>
+                        <div class="text-sm text-gray-600">{{ product.brand_name }} - {{ product.category }}</div>
+                    </div>
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                        {{ review_count }} reviews
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+

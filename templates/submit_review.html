@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write Review - {{ product.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <div>
+                        <a href="/" class="flex items-center py-4 px-2">
+                            <span class="font-semibold text-gray-500 text-lg">Skincare AI</span>
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="/" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Home</a>
+                        <a href="/about" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">About</a>
+                        <a href="/contact" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Contact</a>
+                        <a href="/history" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">History</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700">Welcome, {{ current_user.email }}!</span>
+                    {% if current_user.is_admin() %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition duration-300">Admin Portal</a>
+                    {% endif %}
+                    <a href="{{ url_for('auth.logout') }}" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-300">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-green-400 via-blue-500 to-blue-600 text-white overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 py-16">
+            <div class="text-center">
+                <h1 class="text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                    Share Your Experience
+                </h1>
+                <p class="text-lg mb-6 leading-relaxed opacity-90 max-w-2xl mx-auto">
+                    Help others discover great skincare products by sharing your honest review of {{ product.name }}.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
+                        <i data-lucide="pen-tool" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold">Honest Reviews</span>
+                    </div>
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
+                        <i data-lucide="star" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold">Help Others</span>
+                    </div>
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
+                        <i data-lucide="target" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold">Make Impact</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decorative Elements -->
+        <div class="absolute top-20 left-10 w-20 h-20 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute bottom-20 right-10 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute top-1/2 left-1/4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
+    </section>
+
+    <!-- Review Form Section -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-4xl mx-auto px-4">
+            <!-- Product Preview -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <div class="flex items-center space-x-4">
+                    <img src="{% if product.image_url and product.image_url.startswith('http') %}{{ product.image_url }}{% elif product.image_url %}{{ url_for('static', filename='images/' + product.image_url) }}{% else %}{{ url_for('static', filename='images/default_product.jpg') }}{% endif %}" alt="{{ product.name }}" class="w-16 h-16 object-cover rounded-xl">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">{{ product.name }}</h2>
+                        <p class="text-gray-600 text-sm">{{ product.category }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Form -->
+            <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-10">
+                <div class="mb-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Write Your Review</h3>
+                    <p class="text-gray-600">Your feedback helps the skincare community make better choices</p>
+                </div>
+
+                <form action="{{ url_for('main.submit_review', product_id=product.id) }}" method="POST" class="space-y-8">
+                    <!-- Skin Type Selection -->
+                    <div>
+                        <label for="skin_type" class="block text-gray-700 font-semibold mb-4 text-lg">Your Skin Type</label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <label class="relative">
+                                <input type="radio" name="skin_type" value="normal" class="sr-only peer" required>
+                                <div class="p-4 border-2 border-gray-300 rounded-xl cursor-pointer peer-checked:border-green-500 peer-checked:bg-green-50 transition-all duration-300 hover:border-green-400 hover:bg-green-50">
+                                    <div class="text-center">
+                                        <div class="mb-2 flex justify-center">
+                                            <i data-lucide="sparkles" class="w-8 h-8 text-gray-600 skin-type-icon"></i>
+                                        </div>
+                                        <div class="font-semibold text-gray-800">Normal</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="relative">
+                                <input type="radio" name="skin_type" value="combination" class="sr-only peer" required>
+                                <div class="p-4 border-2 border-gray-300 rounded-xl cursor-pointer peer-checked:border-green-500 peer-checked:bg-green-50 transition-all duration-300 hover:border-green-400 hover:bg-green-50">
+                                    <div class="text-center">
+                                        <div class="mb-2 flex justify-center">
+                                            <i data-lucide="scales" class="w-8 h-8 text-gray-600 skin-type-icon"></i>
+                                        </div>
+                                        <div class="font-semibold text-gray-800">Combination</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="relative">
+                                <input type="radio" name="skin_type" value="dry" class="sr-only peer" required>
+                                <div class="p-4 border-2 border-gray-300 rounded-xl cursor-pointer peer-checked:border-green-500 peer-checked:bg-green-50 transition-all duration-300 hover:border-green-400 hover:bg-green-50">
+                                    <div class="text-center">
+                                        <div class="mb-2 flex justify-center">
+                                            <i data-lucide="sun" class="w-8 h-8 text-gray-600 skin-type-icon"></i>
+                                        </div>
+                                        <div class="font-semibold text-gray-800">Dry</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="relative">
+                                <input type="radio" name="skin_type" value="oily" class="sr-only peer" required>
+                                <div class="p-4 border-2 border-gray-300 rounded-xl cursor-pointer peer-checked:border-green-500 peer-checked:bg-green-50 transition-all duration-300 hover:border-green-400 hover:bg-green-50">
+                                    <div class="text-center">
+                                        <div class="mb-2 flex justify-center">
+                                            <i data-lucide="droplet" class="w-8 h-8 text-gray-600 skin-type-icon"></i>
+                                        </div>
+                                        <div class="font-semibold text-gray-800">Oily</div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Star Rating -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-4 text-lg">Overall Rating</label>
+                        <div class="flex space-x-2 justify-center">
+                            {% for i in range(1, 6) %}
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="rating" value="{{ i }}" class="sr-only" required>
+                                <svg class="w-12 h-12 text-gray-300 hover:text-yellow-400 transition-colors duration-300 star-rating" data-rating="{{ i }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                </svg>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <p class="text-center text-sm text-gray-500 mt-3">Click on a star to rate this product</p>
+                    </div>
+
+                    <!-- Review Text -->
+                    <div>
+                        <label for="review_text" class="block text-gray-700 font-semibold mb-4 text-lg">Your Review</label>
+                        <div class="relative">
+                            <div class="absolute top-4 left-4 pointer-events-none">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                            </div>
+                            <textarea name="review_text" id="review_text" rows="6" class="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-900 text-lg resize-none transition-all duration-300" placeholder="Share your detailed experience with this product. What did you like? What didn't work for you? How did it affect your skin?" required></textarea>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Minimum 20 characters. Be specific about your experience.</p>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                            <i data-lucide="send" class="w-5 h-5"></i>
+                            <span>Submit Review</span>
+                        </button>
+                        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="bg-gray-500 text-white py-4 px-6 rounded-xl hover:bg-gray-600 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-center flex items-center justify-center gap-2">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                            <span>Cancel</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tips Section -->
+            <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 mt-8">
+                <h4 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="lightbulb" class="w-5 h-5 text-green-500"></i>
+                    <span>Tips for a Great Review</span>
+                </h4>
+                <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+                    <div class="flex items-start space-x-2">
+                        <span class="text-green-500">•</span>
+                        <span>Be specific about how the product worked for your skin type</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="text-green-500">•</span>
+                        <span>Mention any improvements you noticed</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="text-green-500">•</span>
+                        <span>Include details about texture, scent, and packaging</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="text-green-500">•</span>
+                        <span>Help others understand if this product is right for them</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2024 Skincare Sentiment Analysis. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Star rating functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.star-rating');
+            const radioButtons = document.querySelectorAll('input[name="rating"]');
+
+            stars.forEach((star, index) => {
+                star.addEventListener('click', function() {
+                    const rating = this.getAttribute('data-rating');
+
+                    // Update radio button
+                    radioButtons.forEach(radio => {
+                        if (radio.value === rating) {
+                            radio.checked = true;
+                        }
+                    });
+
+                    // Update star appearance
+                    stars.forEach((s, i) => {
+                        if (i < rating) {
+                            s.classList.remove('text-gray-300');
+                            s.classList.add('text-yellow-400');
+                        } else {
+                            s.classList.remove('text-yellow-400');
+                            s.classList.add('text-gray-300');
+                        }
+                    });
+                });
+            });
+
+            // Skin type selection - update icon colors
+            const skinTypeRadios = document.querySelectorAll('input[name="skin_type"]');
+            const updateSkinTypeIcons = () => {
+                skinTypeRadios.forEach(radio => {
+                    const icon = radio.closest('label').querySelector('.skin-type-icon');
+                    if (icon) {
+                        if (radio.checked) {
+                            icon.classList.remove('text-gray-600');
+                            icon.classList.add('text-green-600');
+                        } else {
+                            icon.classList.remove('text-green-600');
+                            icon.classList.add('text-gray-600');
+                        }
+                    }
+                });
+            };
+            
+            skinTypeRadios.forEach(radio => {
+                radio.addEventListener('change', updateSkinTypeIcons);
+                radio.addEventListener('click', updateSkinTypeIcons);
+            });
+            
+            // Initialize icon colors
+            updateSkinTypeIcons();
+        });
+    </script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

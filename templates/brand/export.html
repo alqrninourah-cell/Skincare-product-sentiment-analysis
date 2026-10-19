@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Data - {{ brand_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <a href="/" class="flex items-center py-4 px-2">
+                        <span class="font-semibold text-gray-500 text-lg">Skincare AI</span>
+                    </a>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="{{ url_for('brand.dashboard') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Dashboard</a>
+                        <a href="{{ url_for('brand.products') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Products</a>
+                        <a href="{{ url_for('brand.trends') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Trends</a>
+                        <a href="{{ url_for('brand.export') }}"
+                            class="py-4 px-2 text-green-500 border-b-4 border-green-500 font-semibold">Export</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500">Brand: {{ current_user.email }}</span>
+                    <a href="{{ url_for('auth.logout') }}"
+                        class="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-green-400 via-blue-500 to-blue-600 text-white overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 py-20">
+            <div class="text-center">
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                    Export Data
+                </h1>
+                <p class="text-xl mb-8 leading-relaxed opacity-90 max-w-3xl mx-auto">
+                    Download your product analytics, sentiment data, and trend reports in various formats for further analysis.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold">CSV & Excel</span>
+                    </div>
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold">Detailed Reports</span>
+                    </div>
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2">
+                        <i data-lucide="bar-chart" class="w-4 h-4 text-white"></i>
+                        <span class="text-white font-semibold">Analytics Data</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decorative Elements -->
+        <div class="absolute top-20 left-10 w-20 h-20 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute bottom-20 right-10 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute top-1/2 left-1/4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute top-1/3 right-1/4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+    </section>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Data Summary Preview -->
+        {% if export_stats %}
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <i data-lucide="database" class="w-6 h-6 text-green-500"></i>
+                <span>Data Summary</span>
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ export_stats.total_products | default(0) }}</div>
+                    <div class="text-sm text-gray-600">Total Products</div>
+                </div>
+                <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ export_stats.total_reviews | default(0) }}</div>
+                    <div class="text-sm text-gray-600">Total Reviews</div>
+                </div>
+                <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">{{ export_stats.category_count | default(0) }}</div>
+                    <div class="text-sm text-gray-600">Categories</div>
+                </div>
+                <div class="text-center p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl">
+                    <div class="text-3xl font-bold text-pink-600 mb-2">
+                        {% if export_stats.total_reviews and export_stats.total_reviews > 0 %}
+                            {{ "%.1f"|format((export_stats.positive_reviews | default(0) / export_stats.total_reviews * 100)) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </div>
+                    <div class="text-sm text-gray-600">Positive Rate</div>
+                </div>
+            </div>
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-gray-700">Sentiment Distribution</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Positive</span>
+                            <span class="text-sm font-bold text-green-600">{{ export_stats.positive_reviews | default(0) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Negative</span>
+                            <span class="text-sm font-bold text-red-600">{{ export_stats.negative_reviews | default(0) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Neutral</span>
+                            <span class="text-sm font-bold text-yellow-600">{{ export_stats.neutral_reviews | default(0) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-gray-700">Date Range</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">From</span>
+                            <span class="text-sm font-bold text-gray-800">{{ export_stats.date_range.oldest | default('N/A') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">To</span>
+                            <span class="text-sm font-bold text-gray-800">{{ export_stats.date_range.newest | default('N/A') }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-gray-700">Export Formats</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-green-600"></i>
+                            <span class="text-sm text-gray-600">CSV</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-blue-600"></i>
+                            <span class="text-sm text-gray-600">Excel (XLSX)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Loading or No Data State -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8 text-center">
+            <div class="mb-4">
+                <i data-lucide="database" class="w-12 h-12 text-gray-400 mx-auto"></i>
+            </div>
+            <p class="text-gray-600">Loading data summary...</p>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Sentiment Data Export -->
+            <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+                <div class="flex items-center mb-4">
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 p-3 rounded-xl mr-4">
+                        <i data-lucide="heart" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Sentiment Data</h2>
+                        <p class="text-gray-600 text-sm">Product sentiment analysis data</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <a href="{{ url_for('brand.export_sentiment', format='csv') }}"
+                        class="block w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 text-center transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        Export as CSV
+                    </a>
+                    <a href="{{ url_for('brand.export_sentiment', format='excel') }}"
+                        class="block w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 text-center transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        Export as Excel
+                    </a>
+                </div>
+            </div>
+
+            <!-- Trend Report Export -->
+            <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+                <div class="flex items-center mb-4">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-xl mr-4">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Trend Report</h2>
+                        <p class="text-gray-600 text-sm">Comprehensive trend analysis report</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <a href="{{ url_for('brand.export_trends', format='csv') }}"
+                        class="block w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 text-center transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        Export as CSV
+                    </a>
+                    <a href="{{ url_for('brand.export_trends', format='excel') }}"
+                        class="block w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 text-center transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        Export as Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2024 Skincare Sentiment Analysis. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

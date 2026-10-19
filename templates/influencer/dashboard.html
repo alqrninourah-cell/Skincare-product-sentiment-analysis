@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Influencer Dashboard - Skincare Sentiment Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <div>
+                        <a href="/" class="flex items-center py-4 px-2">
+                            <span class="font-semibold text-gray-500 text-lg">Skincare AI</span>
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="{{ url_for('influencer.dashboard') }}"
+                            class="py-4 px-2 text-green-500 border-b-4 border-green-500 font-semibold">Dashboard</a>
+                        <a href="{{ url_for('influencer.trending') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Trending</a>
+                        <a href="{{ url_for('influencer.recommended') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Recommended</a>
+                        <a href="{{ url_for('influencer.filter_products') }}"
+                            class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Filter</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if current_user.is_authenticated %}
+                    <span class="text-gray-500">Welcome, {{ current_user.email }}!</span>
+                    <a href="{{ url_for('auth.logout') }}"
+                        class="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300">Logout</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-green-400 via-blue-500 to-blue-600 text-white overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 py-20">
+            <div class="text-center">
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                    Beauty Influencer Portal
+                </h1>
+                <p class="text-xl mb-8 leading-relaxed opacity-90 max-w-3xl mx-auto">
+                    Discover trending skincare products, analyze consumer sentiment, and share trustworthy recommendations with your audience.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Content -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-600 text-sm mb-2">Total Products</div>
+                <div class="text-3xl font-bold text-gray-800">{{ stats.total_products | default(0) | int }}</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-gray-600 text-sm mb-2">Total Reviews</div>
+                <div class="text-3xl font-bold text-gray-800">{{ stats.total_reviews | default(0) | int }}</div>
+            </div>
+            <div class="bg-green-50 rounded-lg shadow-md p-6">
+                <div class="text-green-600 text-sm mb-2">Trustworthy Reviews</div>
+                <div class="text-3xl font-bold text-green-600">{{ stats.trustworthy_reviews | default(0) | int }}</div>
+            </div>
+            <div class="bg-blue-50 rounded-lg shadow-md p-6">
+                <div class="text-blue-600 text-sm mb-2">Trust Score</div>
+                <div class="text-3xl font-bold text-blue-600">{{ stats.trustworthy_percentage | default(0) }}%</div>
+            </div>
+        </div>
+
+        <!-- Trending Products -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Trending Products</h2>
+                <a href="{{ url_for('influencer.trending') }}"
+                    class="text-green-600 hover:text-green-700 font-semibold">View All →</a>
+            </div>
+            {% if trending_products %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for product in trending_products %}
+                <div class="border-2 border-gray-200 rounded-xl p-4 hover:border-green-500 hover:shadow-lg transition-all duration-300">
+                    <div class="font-semibold text-gray-800 text-lg mb-2">{{ product.name }}</div>
+                    <div class="text-sm text-gray-600 mb-3">{{ product.brand_name }} • {{ product.category }}</div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-gray-600">Positive Sentiment</div>
+                            <div class="text-lg font-bold text-green-600">{{ product.positive_percentage }}%</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Rating</div>
+                            <div class="text-lg font-bold text-gray-800">{{ product.rating }}/5</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Reviews</div>
+                            <div class="text-lg font-bold text-gray-800">{{ product.recent_review_count }}</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <a href="{{ url_for('influencer.product_insights', product_id=product.product_id, source='dashboard') }}"
+                            class="flex-1 text-center bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition duration-300">
+                            View Insights
+                        </a>
+                        <button onclick="copyProductLink({{ product.product_id }}, 'dashboard', this, true)" 
+                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg transition duration-300 flex items-center justify-center" 
+                            title="Copy public link">
+                            <i data-lucide="link" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-gray-600">No trending products available at the moment.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Highly Recommended Products -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Highly Recommended Products</h2>
+                <a href="{{ url_for('influencer.recommended') }}"
+                    class="text-purple-600 hover:text-purple-700 font-semibold">View All →</a>
+            </div>
+            {% if recommended_products %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for product in recommended_products %}
+                <div class="border-2 border-gray-200 rounded-xl p-4 hover:border-green-500 hover:shadow-lg transition-all duration-300">
+                    <div class="font-semibold text-gray-800 text-lg mb-2">{{ product.name }}</div>
+                    <div class="text-sm text-gray-600 mb-3">{{ product.brand_name }} • {{ product.category }}</div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-gray-600">Positive</div>
+                            <div class="text-lg font-bold text-green-600">{{ product.positive_percentage }}%</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Rating</div>
+                            <div class="text-lg font-bold text-gray-800">{{ product.rating }}/5</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Score</div>
+                            <div class="text-lg font-bold text-blue-600">{{ product.recommendation_score }}</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <a href="{{ url_for('influencer.product_insights', product_id=product.product_id, source='dashboard') }}"
+                            class="flex-1 text-center bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition duration-300">
+                            View Insights
+                        </a>
+                        <button onclick="copyProductLink({{ product.product_id }}, 'dashboard', this, true)" 
+                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg transition duration-300 flex items-center justify-center" 
+                            title="Copy public link">
+                            <i data-lucide="link" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-gray-600">No recommended products available at the moment.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2024 Skincare Sentiment Analysis. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-0 opacity-0 transition-all duration-300 z-50">
+        <div class="flex items-center gap-2">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span>Link copied to clipboard!</span>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        function copyProductLink(productId, source, button, usePublic = false) {
+            const toast = document.getElementById('toast');
+            const baseUrl = window.location.origin;
+            // Use public route for sharing so anyone can access it
+            const url = usePublic 
+                ? `${baseUrl}/products/${productId}/insights?source=${source}`
+                : `${baseUrl}/influencer/products/${productId}/insights?source=${source}`;
+            
+            navigator.clipboard.writeText(url).then(() => {
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+                button.classList.add('bg-green-500', 'text-white');
+                lucide.createIcons();
+                
+                toast.classList.remove('opacity-0', 'translate-y-0');
+                toast.classList.add('opacity-100', '-translate-y-2');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('bg-green-500', 'text-white');
+                    lucide.createIcons();
+                    toast.classList.remove('opacity-100', '-translate-y-2');
+                    toast.classList.add('opacity-0', 'translate-y-0');
+                }, 2000);
+            }).catch(err => {
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                toast.classList.remove('opacity-0', 'translate-y-0');
+                toast.classList.add('opacity-100', '-translate-y-2');
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100', '-translate-y-2');
+                    toast.classList.add('opacity-0', 'translate-y-0');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
+

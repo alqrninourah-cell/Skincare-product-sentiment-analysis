@@ -1,0 +1,79 @@
+/* Custom styles for Skincare Sentiment Analysis website */
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+nav a {
+    text-decoration: none;
+}
+
+footer {
+    margin-top: auto;
+}
+
+
+
+/* Loading animation */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Form validation styles */
+.form-error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 1px #ef4444;
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Success message */
+.success-message {
+    color: #10b981;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Star rating styles */
+.star-rating {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.star {
+    font-size: 1.5rem;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.star:hover,
+.star.active {
+    color: #fbbf24;
+}
+
+.star.filled {
+    color: #fbbf24;
+}
+
+/* Fade-in animation */
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}

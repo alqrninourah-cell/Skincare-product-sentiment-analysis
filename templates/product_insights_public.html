@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - Product Insights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <div>
+                        <a href="/" class="flex items-center py-4 px-2">
+                            <span class="font-semibold text-gray-500 text-lg">Skincare AI</span>
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="/" class="py-4 px-2 text-green-500 border-b-4 border-green-500 font-semibold">Home</a>
+                        <a href="/about" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">About</a>
+                        <a href="/contact" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Contact</a>
+                        {% if current_user.is_authenticated %}
+                        <a href="/history" class="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">History</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if current_user.is_authenticated %}
+                        <span class="text-gray-500">Welcome, {{ current_user.email }}!</span>
+                        {% if current_user.is_influencer() %}
+                        <a href="{{ url_for('influencer.dashboard') }}" class="py-2 px-4 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition duration-300">Influencer Portal</a>
+                        {% endif %}
+                        <a href="{{ url_for('auth.logout') }}" class="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-green-400 via-blue-500 to-blue-600 text-white overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 py-20">
+            <div class="text-center">
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                    Product Insights
+                </h1>
+                <p class="text-xl mb-8 leading-relaxed opacity-90 max-w-3xl mx-auto">
+                    Detailed analysis of consumer sentiment, pros, cons, and trustworthy reviews.
+                </p>
+            </div>
+        </div>
+        <!-- Decorative Elements -->
+        <div class="absolute top-20 left-10 w-20 h-20 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute bottom-20 right-10 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute top-1/2 left-1/4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
+    </section>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Product Header with Image -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Product Image -->
+                <div class="lg:col-span-1">
+                    <div class="bg-gray-100 rounded-lg overflow-hidden shadow-md">
+                        <img src="{% if product.image_url and product.image_url.startswith('http') %}{{ product.image_url }}{% elif product.image_url %}{{ url_for('static', filename='images/' + product.image_url) }}{% else %}{{ url_for('static', filename='images/default_product.jpg') }}{% endif %}" 
+                             alt="{{ product.name }}" 
+                             class="w-full h-64 lg:h-80 object-cover">
+                    </div>
+                </div>
+                
+                <!-- Product Info -->
+                <div class="lg:col-span-2">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1">
+                            <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ product.name }}</h1>
+                            <div class="text-gray-600 mb-4">{{ product.brand_name }} • {{ product.category }}</div>
+                        </div>
+                        <button onclick="copyProductLink()" id="shareBtn" class="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition duration-300 shadow-md hover:shadow-lg">
+                            <i data-lucide="share-2" class="w-5 h-5"></i>
+                            <span id="shareBtnText">Share</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <div>
+                            <span class="text-gray-600">Average Rating:</span>
+                            <span class="text-2xl font-bold text-gray-800 ml-2">{{ avg_rating | round(1) }}/5</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Total Reviews:</span>
+                            <span class="text-2xl font-bold text-gray-800 ml-2">{{ sentiment_distribution.total }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action for Non-Influencers -->
+        {% if not current_user.is_authenticated or not current_user.is_influencer() %}
+        <div class="bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-green-500 rounded-lg p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-1">Are you a Beauty Influencer?</h3>
+                    <p class="text-gray-600">Get access to trending products, advanced analytics, and more insights!</p>
+                </div>
+                <a href="{{ url_for('auth.influencer_register') }}" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition duration-300 font-semibold">
+                    Join as Influencer
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Pros -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="text-green-600 mr-2">✓</span> Pros
+                </h2>
+                {% if pros %}
+                <ul class="space-y-3">
+                    {% for pro in pros %}
+                    <li class="flex items-start">
+                        <span class="text-green-600 mr-2">•</span>
+                        <div class="flex-1">
+                            <span class="font-semibold text-gray-800">{{ pro.theme }}</span>
+                            <span class="text-sm text-gray-600 ml-2">({{ pro.frequency }} mentions, {{ pro.percentage }}%)</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-gray-600">No pros identified from positive reviews.</p>
+                {% endif %}
+            </div>
+
+            <!-- Cons -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="text-red-600 mr-2">✗</span> Cons
+                </h2>
+                {% if cons %}
+                <ul class="space-y-3">
+                    {% for con in cons %}
+                    <li class="flex items-start">
+                        <span class="text-red-600 mr-2">•</span>
+                        <div class="flex-1">
+                            <span class="font-semibold text-gray-800">{{ con.theme }}</span>
+                            <span class="text-sm text-gray-600 ml-2">({{ con.frequency }} mentions, {{ con.percentage }}%)</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-gray-600">No cons identified from negative reviews.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sentiment Distribution -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Sentiment Distribution</h2>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-3xl font-bold text-green-600">{{ sentiment_distribution.positive }}</div>
+                    <div class="text-gray-600">Positive ({{ sentiment_distribution.positive_percent | round(1) }}%)</div>
+                </div>
+                <div class="text-center p-4 bg-red-50 rounded-lg">
+                    <div class="text-3xl font-bold text-red-600">{{ sentiment_distribution.negative }}</div>
+                    <div class="text-gray-600">Negative ({{ sentiment_distribution.negative_percent | round(1) }}%)</div>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="text-3xl font-bold text-gray-600">{{ sentiment_distribution.neutral }}</div>
+                    <div class="text-gray-600">Neutral ({{ sentiment_distribution.neutral_percent | round(1) }}%)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommended Skin Types -->
+        {% if recommended_skin_types %}
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Recommended For</h2>
+            <div class="flex flex-wrap gap-2">
+                {% for skin_type in recommended_skin_types %}
+                <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full font-semibold">{{ skin_type.title() }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Trustworthy Reviews -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Trustworthy Reviews (Filtered for Fake Reviews)</h2>
+            {% if trustworthy_reviews %}
+            <div class="space-y-4">
+                {% for review in trustworthy_reviews %}
+                <div class="border-l-4 border-green-500 pl-4 py-2">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-yellow-500">★</span>
+                            <span class="font-semibold">{{ review.rating }}/5</span>
+                        </div>
+                        <span class="text-sm text-gray-600">{{ review.skin_type.title() if review.skin_type else 'N/A' }}</span>
+                    </div>
+                    <p class="text-gray-700">{{ review.text }}</p>
+                    <div class="text-xs text-gray-500 mt-2">
+                        {{ review.created_at.strftime('%Y-%m-%d') if review.created_at else 'N/A' }}
+                        {% if review.suspicious_score is not none %}
+                        • Trust Score: {{ ((1 - review.suspicious_score) * 100) | round(1) }}%
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-600">No trustworthy reviews available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2024 Skincare Sentiment Analysis. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-0 opacity-0 transition-all duration-300 z-50">
+        <div class="flex items-center gap-2">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span id="toastMessage">Link copied to clipboard!</span>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        function copyProductLink() {
+            const productUrl = window.location.href;
+            const shareBtn = document.getElementById('shareBtn');
+            const shareBtnText = document.getElementById('shareBtnText');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            navigator.clipboard.writeText(productUrl).then(() => {
+                shareBtnText.textContent = 'Copied!';
+                shareBtn.classList.add('bg-green-600');
+                
+                toast.classList.remove('opacity-0', 'translate-y-0');
+                toast.classList.add('opacity-100', '-translate-y-2');
+                
+                setTimeout(() => {
+                    shareBtnText.textContent = 'Share';
+                    shareBtn.classList.remove('bg-green-600');
+                    toast.classList.remove('opacity-100', '-translate-y-2');
+                    toast.classList.add('opacity-0', 'translate-y-0');
+                }, 2000);
+            }).catch(err => {
+                const textArea = document.createElement('textarea');
+                textArea.value = productUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    toastMessage.textContent = 'Link copied to clipboard!';
+                    toast.classList.remove('opacity-0', 'translate-y-0');
+                    toast.classList.add('opacity-100', '-translate-y-2');
+                    setTimeout(() => {
+                        toast.classList.remove('opacity-100', '-translate-y-2');
+                        toast.classList.add('opacity-0', 'translate-y-0');
+                    }, 2000);
+                } catch (err) {
+                    toastMessage.textContent = 'Failed to copy link';
+                    toast.classList.remove('opacity-0', 'translate-y-0');
+                    toast.classList.add('opacity-100', '-translate-y-2');
+                    setTimeout(() => {
+                        toast.classList.remove('opacity-100', '-translate-y-2');
+                        toast.classList.add('opacity-0', 'translate-y-0');
+                    }, 2000);
+                }
+                document.body.removeChild(textArea);
+            });
+        }
+    </script>
+</body>
+</html>
+
